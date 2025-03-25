@@ -93,26 +93,29 @@ wss.on("connection", (ws) => {
   ws.on("message", async (msg) => {
     const message = msg.toString();
     console.log("Received WebSocket message:", message);
-        webpush.sendNotification(subscription, payload).catch(async (err) => {
-          console.error(`Invalid subscription found: ${doc.id}`);
-          if (err.statusCode === 410) {
-            await deleteSubscription(doc.id);
-          }
-        });
-      const subscription = doc.data();
-      const payload = JSON.stringify({ title: "New Alert", body: message });
 
-      notifications.push(
-        webpush.sendNotification(subscription, payload).catch((err) => {
-          console.error(`Invalid subscription found: ${sub.id}`);
-          if (error.statusCode === 410) {
-            await deleteSubscription(sub.id);
-          }
-        })
-      );
-    });
+    try {
+      const subscriptionsSnapshot = await db.collection("push-subscriptions").get();
+      const notifications = [];
 
-    await Promise.all(notifications);
+      subscriptionsSnapshot.forEach((doc) => {
+        const subscription = doc.data();
+        const payload = JSON.stringify({ title: "New Alert", body: message });
+
+        notifications.push(
+          webpush.sendNotification(subscription, payload).catch(async (err) => {
+            console.error(`Invalid subscription found: ${doc.id}`);
+            if (err.statusCode === 410) {
+              await deleteSubscription(doc.id);
+            }
+          })
+        );
+      });
+
+      await Promise.all(notifications);
+    } catch (error) {
+      console.error("Error handling WebSocket message:", error);
+    }
   });
 });
 
