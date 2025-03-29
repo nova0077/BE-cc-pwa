@@ -1,7 +1,7 @@
 {
   "name": "my-node-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for copper-cloud-pwa",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
